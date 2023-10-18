@@ -8,7 +8,7 @@ Kako bi se efikasno izvršila pretraga nad velikom količinom podataka, tokom go
 
 Sliku lica je prvo potrebno predstaviti u nekom prostoru koji je niže dimenzije, a u kom je moguće zadržati sve informacije koje su neophodne za prepoznavanje. Na primer, moguće ih je predstaviti kao vektore realnih brojeva. Za te potrebe se koriste neuronske mreže koje su obučene da izdvajaju bitne karakteristike slike (*eng. feature embeddings*). Neki od javno dostupnih modela za izdvajanje bitnih karakteristika lica su: [SphereFace](https://arxiv.org/abs/1704.08063), [CosFace](https://arxiv.org/abs/1801.09414), [FaceNet](https://arxiv.org/abs/1503.03832), [ArcFace](https://arxiv.org/abs/1801.07698), [VGGFace](https://www.robots.ox.ac.uk/~vgg/publications/2015/Parkhi15/parkhi15.pdf), [DeepFace](https://www.cs.toronto.edu/~ranzato/publications/taigman_cvpr14.pdf).
 
-Za potrebe ovog primera je uzeta varijanta FaceNet-a koja konvertuje sliku 512-dimenzioni vektor -- $ x_i \in \R^{512} $.
+Za potrebe ovog primera je uzeta varijanta FaceNet-a koja konvertuje sliku u 512-dimenzioni vektor, $ x_i \in \R^{512} $.
 
 
 ## KNN pretraga
@@ -20,7 +20,7 @@ Za određivanje distance između vektorskih reprezentacija dve slike lica, najč
 $$ 
 \begin{equation}
 \begin{split}
-cos\_distance & = 1 - cos\_similarity \\
+cos{\_distance} & = 1 - cos{\_similarity} \\
               & = 1 - cos(\theta) \\
               & = 1 - \frac{A \cdot B}{||A|| ||B||} \\
               & = 1 - \frac{\sum\limits_{i=1}^{n}A_i B_i}{\sqrt{\sum\limits_{i=1}^{n}A_i^n} \sqrt{\sum\limits_{i=1}^{n}B_i^n}}
@@ -34,18 +34,18 @@ Geometrijski, ovo se može prikazati na sledeći način (u dvodimenzionom sluča
 
 <img src="./images/cos_dist_1.png" alt="drawing" width="300"/>  <img src="./images/cos_dist_2.png" alt="drawing" width="303"/>
 
-*Slika 1: a) Leva: ugao između vektora je veći, što znači da su oni međusobno dalji i da su slike kojima odgovaraju manje slične. b) Desno:  ugao između vektora je manji, što znači da su oni međusobno bliži i da su slike kojima odgovaraju sličnije.*
+*Slika 1: a) Levo: ugao između vektora je veći, što znači da su oni međusobno dalji i da su slike kojima odgovaraju manje slične. b) Desno:  ugao između vektora je manji, što znači da su oni međusobno bliži i da su slike kojima odgovaraju sličnije.*
 
 Kosinusna distanca je uvek u intervalu $[0, 2]$, a što je manja, to su slike sličnije. Ukoliko su slike identične, kosinusna distanca je 0, a ukoliko su slike potpuno različite, kosinusna distanca je 2.
 
-Alternativno, može se koristiti i L2 norma.
+Alternativno, može se koristiti i $L_2$ norma.
 
 Naivni pristup KNN pretrage se zasniva na tome da se za svaki element iz skupa podataka izračuna rastojanje od svih ostalih elemenata, i da se zatim izabere $K$ elemenata koji su najbliži datom elemntu. Nažalost, složenost ovog pristupa raste linearno sa porastom broja elementata u skupu podataka, čineći ga neupotrebljivim za realne primene. Zbog toga se koriste različite strukture podataka koje omogućavaju bržu pretragu, kao i aproksimacije pretrage.
 
 
 ## Aproksimativna KNN pretraga pomoću HNSW grafova
 
-HNSW (*Hierarchical Navigable Small World*) graf predstavlja *state-of-the-art* strukturu podataka za aproksimativnu KNN pretragu. HNSW grafovska je struktura podataka koja se sastoji iz više nivoa. 
+HNSW (*Hierarchical Navigable Small World*) graf predstavlja *state-of-the-art* strukturu podataka za aproksimativnu KNN pretragu. HNSW graf je struktura podataka koja se sastoji iz više nivoa. 
 
 HNSW uzima koncept pretrage od *skip* listi. 
 
@@ -79,7 +79,7 @@ Sličan koncept se primenjuje i pri kreiranju i pretrazi HNSW grafa. On se tako�
 
 <img src="./images/hnsw_graph.jpg" alt="drawing" width="300"/>
 
-Čvorovi grafa predstavljaju *feature* vektore koji odgovaraju slikama lica. A grane kojima su čvorovi povezani odgovaraju kosinusnim distancama između tih vektora.
+Čvorovi grafa predstavljaju *feature* vektore koji odgovaraju slikama lica. Grane kojima su čvorovi povezani odgovaraju kosinusnim distancama između tih vektora.
 
 ### Pretraga HNSW grafa
 
@@ -119,7 +119,7 @@ Insertovanje elemenata u HNSW graf se odvija po sledećem principu:
 
 * Prethodna dva koraka se ponavljaju dok se ne ispuni kriterijum zaustavljanja.
 
-Prilikom pretrage se čuva dinamička lista *W* koja sadrži *ef* najbližih suseda. Lista se u svakom koraku ažurira na osnovu evaluacije suseda elemenata liste koji su prethodno dodati. Kada se lista dostigne maksimalnu veličinu od *ef* elemenata, ako se naidje na element koji je bliži traženom čvoru od najdaljeg elementa liste, taj najdalji element će biti zamenjen njime. Kada se evaluiraju sva susedstva elemenata liste, pretraga se završava. 
+Prilikom pretrage se čuva dinamička lista *W* koja sadrži *ef* najbližih suseda. Lista se u svakom koraku ažurira na osnovu evaluacije suseda elemenata liste koji su prethodno dodati. Kada se lista dostigne maksimalnu veličinu od *ef* elemenata, ako se naidje na element koji je bliži traženom čvoru od najdaljeg elementa liste, taj najdalji element će biti zamenjen njime. Kada se evaluiraju svi susedi svakog elementa liste, pretraga se završava. 
 
-Prednost ovakvog kriterijuma zaustavljanja je u tome što neće evaluirati sve čvorove grafa, već će odbacivati sve one koji se od traženog čvora nalaze dalje od najdaljeg elementa liste *W*.
+Prednost ovakvog kriterijuma zaustavljanja je u tome što se neće evaluirati svi čvorovi grafa, već će se odmah odbacivati svi oni koji se od traženog čvora nalaze dalje od najdaljeg elementa liste *W*.
 
